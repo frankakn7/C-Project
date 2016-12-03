@@ -11,16 +11,19 @@
 #include <array>
 #include <fstream>              // Für das benutzen von txt files
 #include <iterator>
+#include <unistd.h>             // Für sleep
 using namespace std;
 
 bool numbers = true;            //Für spätere "Settings" --
 bool characters = false;        //                         |
 bool caseSensitive = false;     //                    <----
 
+const int codeSize = 16;
+
 // vector codes und array numOccurrance werden declared
 
 vector<vector<int>> codes;
-array<array<int,10>,16> numOccurrance;
+array<array<int,10>,codeSize> numOccurrance;
 
 string number;
 
@@ -29,13 +32,14 @@ fstream codesFile;
 void getSingleCodeVector() {
     //Macht aus user eingabe einen vector
     vector<int>singleCode;                      // Erstellt singleCode vector
+    
     for(int i = 0; i < number.size(); i++){     // Looped durch code eingabe vom user
         int singleNum = number[i] - '0';        // Konvertiert String --> Int
         singleCode.push_back(singleNum);        // packt jedes einzelne eingabezeichen in den vector singlecode
     }
     codes.push_back(singleCode);                // stopfed singlecode vector in codes vector
     
-    if(!codesFile.is_open()){
+    if(!codesFile.is_open()){                                                                   // Wenn datai noch nicht geöffnet
         codesFile.open("codes.txt", ios::app);                                                  // Öffne datei im append mode (nicht überschreiben)
         if(codesFile.is_open()){                                                                // Wenn datei geöffnet
             copy(singleCode.begin(), singleCode.end(), ostream_iterator<int>(codesFile));       // kopiere singleCode.anfang -- bis ---> ende als 'int' zu codeFile
@@ -46,6 +50,14 @@ void getSingleCodeVector() {
         }
     }
     return;
+}
+
+bool isNumberSizeOk(){
+    if(number.size() == codeSize){
+        return true;
+    }else{
+        return false;
+    }
 }
 
 // checkt ob datei existiert
@@ -74,8 +86,17 @@ void setupCodeFile(){
 
 void getUserCode() {
     cout << "Enter Code: " << endl;
-    cin >> number;                              // User eingabe wird unter number gespeichert
-    getSingleCodeVector();                      // User eingabe wird in vector und in codesFile "gespeichert"
+    cin >> number;                                      // User eingabe wird unter number gespeichert
+    if(isNumberSizeOk()){                               // Wenn number = vorgegebene code länge
+        getSingleCodeVector();                          // User eingabe wird in vector und in codesFile "gespeichert"
+        cout << "[1] Enter another Code" << endl;       // Nochmal Code eingeben
+        cout << "[0] Exit" << endl;                     // Exit
+    }else{                                                                                      // Wenn number != vorgegebene code länge
+        system("clear");
+        cout << "ERROR: Code Invalid. Code must be " << codeSize << " digets long" << endl;     // Error ausgabe
+        cout << "[1] Reenter Code" << endl;                                                     // Nochmal versuchen
+        cout << "[0] Exit" << endl;                                                             // Exit
+    }
     return;
 }
 
@@ -166,7 +187,7 @@ int main() {
             case 1:
                 system("clear");
                 getUserCode();      // Eingabe für user code
-                choice = 0;
+                cin >> choice;
                 break;
             case 2:
                 system("clear");
@@ -177,6 +198,12 @@ int main() {
                 system("clear");
                 compareCodes();     // Zeig häufigkeit von zeichen an bestimmter stelle des codes
                 cin >> choice;
+                break;
+            default:                                            // keins von den eingaben oben
+                system("clear");
+                cout << "Not a valid Choice" << endl;
+                usleep(2000000);                                // Lass programm 2 sekunden warten
+                choice = 0;
                 break;
         }
     }
